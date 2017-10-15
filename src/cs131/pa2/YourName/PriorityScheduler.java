@@ -1,14 +1,12 @@
 package cs131.pa2.YourName;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.PriorityQueue;
+
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -25,9 +23,9 @@ public class PriorityScheduler extends Tunnel {
     //To keep track of which tunnel a vehicle is in, such that the means
     //is internal to this file.
     private final Map<Vehicle, Tunnel> tunnelUsed = new HashMap<Vehicle, Tunnel>();
-    private final Lock lock = new ReentrantLock();
     //Specified capacity of one does not interfere with the Queue size, it will grow as needed
     private final PriorityQueue<Vehicle> waitingQueue = new PriorityQueue<Vehicle>(1, priorityComparator);
+    private final Lock lock = new ReentrantLock();
     //A waiting list for vehicles not yet at the front of the queue
     private final Condition notcurrent = lock.newCondition();
     //For when a vehicle is at the front but all tunnels are 
@@ -84,7 +82,6 @@ public class PriorityScheduler extends Tunnel {
         	try {
 				currentwaiting.await();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
         }
