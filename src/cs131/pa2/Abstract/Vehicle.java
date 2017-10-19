@@ -67,9 +67,18 @@ public abstract class Vehicle implements Runnable {
         init(name, direction, 0, log);
     }
     
+    public Vehicle(String name, Direction direction, int Priority, Log log) {
+    	init(name, direction, Priority, log);
+    }
+    
     public Vehicle(String name, Direction direction) {
         this(name, direction, Tunnel.DEFAULT_LOG);
     }
+    
+    public Vehicle(String name, Direction direction, int Priority) {
+        this(name, direction, Priority, Tunnel.DEFAULT_LOG);
+    }
+
     
     /** 
      * Sets this vehicle's priority - used for priority scheduling
@@ -153,6 +162,8 @@ public abstract class Vehicle implements Runnable {
      * simulate taking time to "cross" the tunnel. The faster your
      * vehicle is, the less time this will take.
      */
+    
+    //TODO: modify to change wait time
     public final void doWhileInTunnel() {
          try {
              Thread.sleep((10 - speed) * 100);
