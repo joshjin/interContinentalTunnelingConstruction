@@ -19,10 +19,13 @@ import cs131.pa2.Abstract.Log.Log;
 
 public class PreemptivePriorityScheduler extends Tunnel{
 	//To determine if a tunnel is occupied
-    private final Map<Tunnel, Boolean> mapUseFlag = new HashMap<Tunnel, Boolean>();
+    private final Map<Tunnel, Boolean> mapUseFlag = new HashMap();
     //To keep track of which tunnel a vehicle is in, such that the means
     //is internal to this file.
-    private final Map<Vehicle, Tunnel> tunnelUsed = new HashMap<Vehicle, Tunnel>();
+    private final Map<Vehicle, Tunnel> tunnelUsed = new HashMap();
+    
+    private Map<Tunnel, Lock> tunnelToLock = new HashMap();
+    
     //Specified capacity of one does not interfere with the Queue size, it will grow as needed
     private final PriorityQueue<Vehicle> waitingQueue = new PriorityQueue<Vehicle>(1, priorityComparator);
     private final Lock lock = new ReentrantLock();
@@ -31,20 +34,26 @@ public class PreemptivePriorityScheduler extends Tunnel{
     //For when a vehicle is at the front but all tunnels are 
     //occupied or something stranger is wrong
     private final Condition currentwaiting = lock.newCondition();
+    
+    private final Condition waitForOtherAmbulance = lock.newCondition();
+    
     private Collection<Tunnel> tunnels;	
 	
 	public PreemptivePriorityScheduler(String name, Collection<Tunnel> tunnels, Log log) {
         super(name, log);
         Iterator<Tunnel> iter = tunnels.iterator();
         this.tunnels = tunnels;
+        
         //Initialize all tunnels as available
         while (iter.hasNext()) {
             this.addTunnel(iter.next());
+            
         }
     }
     
     public void addTunnel(Tunnel tunnel) {
         this.mapUseFlag.put(tunnel, false);
+        this.tunnelToLock.put(tunnel,new ReentrantLock());
     }
     
     public PreemptivePriorityScheduler(String name) {
@@ -53,12 +62,72 @@ public class PreemptivePriorityScheduler extends Tunnel{
 
 	@Override
 	public boolean tryToEnterInner(Vehicle vehicle) {
-		// TODO Auto-generated method stub
-		return false;
+		lock.lock();
+		if(vehicle instanceof Ambulance) {
+			while(true) {
+				for(Tunnel t : tunnels) {
+					if(!t.isHasAmbulance()) {
+						//make all cars wait in this tunnel
+						lock.unlock();
+						return true;
+					}
+				}
+				try {
+					waitForOtherAmbulance.await();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+	        }
+		}else {
+			waitingQueue.add(vehicle);
+			while (!waitingQueue.peek().equals(vehicle)){
+	            try {
+	                notcurrent.await();
+	            } catch (InterruptedException e) {
+	                e.printStackTrace();
+	            }
+	        }
+			while (allInUse()){
+	            try {
+	                currentwaiting.await();
+	            } catch (InterruptedException e) {
+	                e.printStackTrace();
+	            }
+	        }
+			Tunnel available = firstAvailable();
+	        //In case something went wrong
+	        while (available == null) {
+	        	available = firstAvailable();
+	        	try {
+					currentwaiting.await();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+	        }
+	        while (!available.tryToEnter(vehicle)){
+	            try {
+	            	currentwaiting.await();
+	            } catch (InterruptedException e) {
+	                e.printStackTrace();
+	            }
+	        }
+	        //assign the vehicle to the tunnel
+	        tunnelUsed.put(vehicle, available);
+	        //indicate the tunnel is in use
+	        mapUseFlag.put(available, true);
+	        waitingQueue.poll();
+	        //wake up threads waiting to
+	        //arrive at the head of the queue
+	        notcurrent.signalAll();
+	        
+		}
+		lock.unlock();
+		return true;
 	}
 
 	@Override
 	public void exitTunnelInner(Vehicle vehicle) {
+		removeVehicle(vehicle);
 		// TODO Auto-generated method stub
 		
 	}

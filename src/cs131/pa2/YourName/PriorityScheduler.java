@@ -53,7 +53,7 @@ public class PriorityScheduler extends Tunnel {
     
     @Override
     public boolean tryToEnterInner(Vehicle vehicle){
-    	lock.lock();
+    		lock.lock();
         waitingQueue.add(vehicle);
         //wait while not at the head of the queue
         //i.e. while there exists a vehicle with 
@@ -112,8 +112,8 @@ public class PriorityScheduler extends Tunnel {
     
     @Override
     public void exitTunnelInner(Vehicle vehicle){
-    	lock.lock();
-    	//find which tunnel the vehicle is exiting
+    		lock.lock();
+    		//find which tunnel the vehicle is exiting
         Tunnel tunnel = tunnelUsed.get(vehicle);
         //call exitTunnel on the tunnel
         tunnel.exitTunnel(vehicle);

@@ -55,6 +55,7 @@ public class BasicTunnel extends Tunnel{
 	@Override
 	public synchronized void exitTunnelInner(Vehicle vehicle) {
 		// remove matching vehicle
+		removeVehicle(vehicle);
 		for (Vehicle tmp_vehicle : vehicle_list) {
 			if (tmp_vehicle.equals(vehicle)) {
 				vehicle_list.remove(vehicle);

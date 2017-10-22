@@ -1,5 +1,6 @@
 package cs131.pa2.Abstract;
 
+import java.util.HashSet;
 import java.util.Objects;
 
 import cs131.pa2.Abstract.Log.EventType;
@@ -21,6 +22,10 @@ import cs131.pa2.Abstract.Log.Log;
  */
 public abstract class Tunnel {
 	
+	private boolean hasAmbulance = false;
+	
+	private HashSet<Vehicle> vehicles = new HashSet();
+	
 	private final String name;
 	public static Log DEFAULT_LOG = new Log();
     private final Log log;
@@ -40,6 +45,7 @@ public abstract class Tunnel {
         log.addToLog(vehicle, this, EventType.ENTER_ATTEMPT, sig);
         if (this.tryToEnterInner(vehicle)) {
             log.addToLog(vehicle, this, EventType.ENTER_SUCCESS, sig);
+            vehicles.add(vehicle);
             return true;
         } else {
             log.addToLog(vehicle, this, EventType.ENTER_FAILED, sig);
@@ -57,10 +63,15 @@ public abstract class Tunnel {
     
     public final void exitTunnel(Vehicle vehicle) {
         //Do not overwrite this function, you should be overwriting disconnectInner
-        int sig = log.nextLogEventNumber();
+    		removeVehicle(vehicle);
+    		int sig = log.nextLogEventNumber();
         this.log.addToLog(vehicle, this, EventType.LEAVE_START, sig);
         this.exitTunnelInner(vehicle);
         this.log.addToLog(vehicle, this, EventType.LEAVE_END, sig);
+    }
+    
+    public void removeVehicle(Vehicle vehicle) {
+    	vehicles.remove(vehicle);
     }
     
     /**
@@ -106,4 +117,14 @@ public abstract class Tunnel {
         }
         return true;
     }
+
+	public boolean isHasAmbulance() {
+		return hasAmbulance;
+	}
+
+	public void setHasAmbulance(boolean hasAmbulance) {
+		this.hasAmbulance = hasAmbulance;
+	}
+    
+
 }

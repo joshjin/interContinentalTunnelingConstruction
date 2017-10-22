@@ -1,5 +1,6 @@
 package cs131.pa2.Abstract;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
 
 import cs131.pa2.Abstract.Log.EventType;
 import cs131.pa2.Abstract.Log.Log;
@@ -26,7 +27,8 @@ public abstract class Vehicle implements Runnable {
     private Collection<Tunnel> 	tunnels;
     private int                	priority;
     private int                	speed;
-    private Log 				log;
+    private Log 					log;
+    private Lock                 lock;
 
     /**
      * Initialize a Vehicle; called from Vehicle constructors.
@@ -139,10 +141,10 @@ public abstract class Vehicle implements Runnable {
         while(true) {
             for(Tunnel tunnel : tunnels) {
                 if(tunnel.tryToEnter(this)) {
-                    doWhileInTunnel();
-                    tunnel.exitTunnel(this);
-                    this.log.addToLog(this, EventType.COMPLETE);
-                    return; // done, so leave the whole function
+                    	doWhileInTunnel();
+                    	tunnel.exitTunnel(this);
+                    	this.log.addToLog(this, EventType.COMPLETE);
+                    	return; // done, so leave the whole function
                 }
             }
         }
