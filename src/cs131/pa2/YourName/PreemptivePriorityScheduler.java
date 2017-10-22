@@ -68,6 +68,7 @@ public class PreemptivePriorityScheduler extends Tunnel{
 				for(Tunnel t : tunnels) {
 					if(!t.isHasAmbulance()) {
 						//make all cars wait in this tunnel
+						//TODO
 						lock.unlock();
 						return true;
 					}
